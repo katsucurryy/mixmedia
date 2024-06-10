@@ -1,0 +1,109 @@
+import os
+import numpy as np
+import cv2
+from glob import glob
+!pip install docx.shared
+!pip install docx
+!pip install python-docx 
+
+import docx
+from docx import Document
+from docx.shared import Inches
+
+def create_dir(path):
+    try:
+        if not os.path.exists(path):
+            os.makedirs(path)
+    except OSError:
+        print(f"ERROR: creating directory with name {path}")
+
+def save_frame(video_path, save_dir, gap):
+    name = video_path.split("/")[-1].split(".")[0]
+    save_path = os.path.join(save_dir, name)
+    create_dir(save_path)
+
+    cap = cv2.VideoCapture(video_path)
+    idx = 0
+
+    while True:
+        ret, frame = cap.read()
+
+        if ret == False:
+            cap.release()
+            break
+
+        if idx == 0:
+            cv2.imwrite(f"{save_path}/{idx}.png", frame)
+        else:
+            if idx % gap == 0:
+                cv2.imwrite(f"{save_path}/{idx}.png", frame)
+
+        idx += 1
+
+from google.colab import drive
+drive.mount('/content/gdrive')
+
+video_paths = '/content/gdrive/MyDrive/Videos/01.mov'         #change video add to videos then change name to match
+save_dir = '/content/gdrive/MyDrive/Videos/egg'
+
+video=cv2.VideoCapture(video_paths)
+success = True
+count = 0
+num=1
+gap =3                        #3 is 15 frames at 30 fps #4 is 10 fps dont know why just how it is 2 is original number of frames
+
+
+count = 0 #keeps proper track of frames or naming
+
+print(video.get(cv2.CAP_PROP_FPS))
+
+while video.isOpened:
+      success,frame = video.read()
+      if count == 0:
+        
+         name = '/content/gdrive/MyDrive/Videos/egg/'+str(num)+'.jpg' #names all of them but only adds once true
+          
+         if success == True:
+           cv2.imwrite(name,frame)
+           print('Frame {} Extracted Successfully'.format(count))
+           count = count+1
+           num=num+1 #keeps proper track of frames or naming
+      if (count) % gap == 0:
+           
+           name = '/content/gdrive/MyDrive/Videos/egg/'+str(num)+'.jpg' 
+           if success == True:
+            cv2.imwrite(name,frame)
+            print('Frame {} Extracted Successfully'.format(count))
+            count = count+1
+            num=num+1 #keeps proper track of frames or naming
+      if (count) % gap !=0:
+        count=count+1
+        
+        print('x')
+      else:
+        break;
+     
+
+document = Document()
+section = document.sections[0]
+section.page_height = Mm(297)
+section.page_width = Mm(210)
+
+
+img = '';
+x=1;
+vidname = 'drift'                             #change video name
+p = document.add_paragraph()
+r = p.add_run()
+sections = document.sections
+for section in sections:                                #this removes border
+    section.top_margin = Inches(0)
+    section.bottom_margin = Inches(0)
+    section.left_margin = Inches(0)
+    section.right_margin = Inches(0)
+while(x<num):
+  img = '/content/gdrive/MyDrive/Videos/egg/'+str(x)+'.jpg'   # adds frames in order 
+  r.add_picture(img, width=Inches(3.75))                     #1.501 for 5x4 iphone videos
+  r.add_text("              ")
+  x=x+1
+document.save('/content/gdrive/MyDrive/Videos/egg/'+vidname+'.docx')
